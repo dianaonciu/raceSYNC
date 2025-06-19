@@ -1,6 +1,7 @@
 # React + TypeScript + Vite
 
 Prerequisites
+
 Before running the project locally, make sure you have the following installed:
 
 Node.js (v22.16.0 recommended)
