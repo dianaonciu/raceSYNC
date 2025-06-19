@@ -1,8 +1,7 @@
-# .github/workflows/deploy.yml
 name: Manual Deploy to GitHub Pages
 
 on:
-  workflow_dispatch:   # Manual trigger from GitHub UI
+  workflow_dispatch:   
 
 jobs:
   build-and-deploy:
