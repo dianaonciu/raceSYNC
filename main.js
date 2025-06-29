@@ -1,8 +1,16 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { importCSV, getAllUsers } from './database.js';
 
-console.log('Hello from Electron 👋');
+const isDev = !app.isPackaged; // erkennt Dev-Modus
+const startUrl = isDev
+    ? 'http://localhost:5173'
+    : `file://${path.join(__dirname, '../dist/index.html')}`;
+
+ipcMain.handle('get-users', () => {
+    return getAllUsers();
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,18 +20,18 @@ function createWindow() {
         width: 800,
         height: 600,
         webPreferences: {
-            // preload: path.join(__dirname, 'preload.js'), // optional
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
         },
     });
-
-    const devUrl = process.env.VITE_DEV_SERVER_URL;
-    const prodIndex = `file://${path.join(__dirname, 'dist/index.html')}`;
-
-    win.loadURL(devUrl || prodIndex);
+    win.loadURL(startUrl);
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    createWindow();
 
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+    // Optional: CSV beim Start importieren
+    const csvPath = path.join(__dirname, 'beispiel.csv');
+    importCSV(csvPath);
 });

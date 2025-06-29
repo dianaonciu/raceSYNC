@@ -1,8 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/raceSYNC/', // Important: Set this to your GitHub repo name
+  base: '/raceSYNC/', // für GitHub Pages
+
+  build: {
+    outDir: 'dist', // wichtig für Electron
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'), // notwendig für korrektes Entry-Handling
+      },
+    },
+  },
 })
