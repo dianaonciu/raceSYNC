@@ -1,7 +1,48 @@
 # React + TypeScript + Vite
 
+Prerequisites
+
+Before running the project locally, make sure you have the following installed:
+
+Node.js (v22.16.0 recommended)
+
+Download and install from https://nodejs.org/
+
+pnpm (v10.12.1 recommended)
+
+Install pnpm globally if you don’t have it yet:
+
+npm install -g pnpm
+
+
+
+Installation
+
+Clone the repository:
+
+git clone https://github.com/dianaonciu/raceSYNC.git
+
+cd raceSYNC
+
+Install dependencies with pnpm:
+
+pnpm install
+
 if problems derive when installing. go into node_modules/electron and do "node install.js"
 pnpm run dev for local development
+
+
+
+Running the project locally
+
+Start the development server with:
+
+pnpm run dev
+
+This will launch the app locally at http://localhost:5173 (or another port if 5173 is in use). Open this URL in your browser to see the app.
+
+GitHub Page: https://dianaonciu.github.io/raceSYNC/
+
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
