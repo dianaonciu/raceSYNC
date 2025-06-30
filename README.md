@@ -28,6 +28,9 @@ Install dependencies with pnpm:
 
 pnpm install
 
+if problems derive when installing. go into node_modules/electron and do "node install.js"
+pnpm run dev for local development
+
 
 
 Running the project locally
