@@ -1,0 +1,207 @@
+import React, { useState, useRef, useEffect } from 'react';
+import styles from './DraggableWindow.module.scss';
+
+export type WindowState = {
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  minimized: boolean;
+  maximized: boolean;
+};
+
+type DraggableWindowProps = {
+  id: string;
+  title: string;
+  initialPosition: { x: number; y: number };
+  initialSize: { width: number; height: number };
+  minimized?: boolean;
+  maximized?: boolean;
+  zIndex?: number;
+  children?: React.ReactNode;
+  onFocus: () => void;
+  onUpdate: (state: Partial<WindowState>) => void;
+  onClose: () => void;
+};
+
+const DraggableWindow = ({
+  id,
+  title,
+  initialPosition,
+  initialSize,
+  minimized = false,
+  maximized = false,
+  zIndex = 10,
+  children,
+  onFocus,
+  onUpdate,
+  onClose,
+}: DraggableWindowProps) => {
+  const windowRef = useRef<HTMLDivElement>(null);
+
+  const [position, setPosition] = useState(initialPosition);
+  const [size, setSize] = useState(initialSize);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [mouseStart, setMouseStart] = useState<{ x: number; y: number } | null>(null);
+  const [startPosition, setStartPosition] = useState(position);
+  const [startSize, setStartSize] = useState(size);
+  const [prevPosition, setPrevPosition] = useState<{ x: number; y: number } | null>(null);
+  const [prevSize, setPrevSize] = useState<{ width: number; height: number } | null>(null);
+
+  const onMouseDownDrag = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onFocus();
+    setIsDragging(true);
+    setMouseStart({ x: e.clientX, y: e.clientY });
+    setStartPosition(position);
+  };
+
+  const onMouseDownResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onFocus();
+    setIsResizing(true);
+    setMouseStart({ x: e.clientX, y: e.clientY });
+    setStartSize(size);
+  };
+
+  const onMouseMove = (e: MouseEvent) => {
+    if (isDragging && mouseStart) {
+      const dx = e.clientX - mouseStart.x;
+      const dy = e.clientY - mouseStart.y;
+      const newPos = {
+        x: Math.max(startPosition.x + dx, 0),
+        y: Math.max(startPosition.y + dy, 0),
+      };
+      setPosition(newPos);
+    } else if (isResizing && mouseStart) {
+      const dx = e.clientX - mouseStart.x;
+      const dy = e.clientY - mouseStart.y;
+      const newSize = {
+        width: Math.max(startSize.width + dx, 150),
+        height: Math.max(startSize.height + dy, 100),
+      };
+      setSize(newSize);
+    }
+  };
+
+  const onMouseUp = () => {
+    if (isDragging) {
+      onUpdate({ position });
+    }
+    if (isResizing) {
+      onUpdate({ size });
+    }
+    setIsDragging(false);
+    setIsResizing(false);
+    setMouseStart(null);
+  };
+
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [isDragging, isResizing, mouseStart, position, size]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleMinimize = () => {
+    onUpdate({ minimized: true });
+  };
+
+  const handleMaximize = () => {
+  if (maximized) {
+    // restore position & size from saved prev values or initial as fallback
+    onUpdate({ maximized: false });
+    if (prevPosition && prevSize) {
+      setPosition(prevPosition);
+      setSize(prevSize);
+    } else {
+      setPosition(initialPosition);
+      setSize(initialSize);
+    }
+  } else {
+    // save current pos & size before maximizing
+    setPrevPosition(position);
+    setPrevSize(size);
+
+    onUpdate({ maximized: true, minimized: false });
+    setPosition({ x: 0, y: 0 });
+    setSize({
+      width: window.innerWidth,
+      height: window.innerHeight - 10 * (window.innerHeight / 100), // adjust for header + taskbar
+    });
+  }
+};
+
+const handleRestore = () => {
+  onUpdate({ minimized: false, maximized: false });
+  if (prevPosition && prevSize) {
+    setPosition(prevPosition);
+    setSize(prevSize);
+  } else {
+    setPosition(initialPosition);
+    setSize(initialSize);
+  }
+};
+
+  const style = maximized
+    ? {
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: 'calc(100vh - 10vh)',
+        position: 'fixed' as const,
+        zIndex,
+      }
+    : {
+        top: position.y,
+        left: position.x,
+        width: size.width,
+        height: size.height,
+        position: 'absolute' as const,
+        zIndex,
+        display: minimized ? 'none' : 'flex',
+      };
+
+  return (
+    <div
+      ref={windowRef}
+      className={styles.window}
+      style={style}
+      onMouseDown={onFocus}
+      data-id={id}
+      tabIndex={0}
+      aria-label={title}
+    >
+      <div className={styles.titleBar} onMouseDown={onMouseDownDrag}>
+        <span className={styles.title}>{title}</span>
+        <div className={styles.controls}>
+          {minimized ? (
+            <button className={styles.controlBtn} onClick={handleRestore} title="Restore">
+              ;
+            </button>
+          ) : (
+            <>
+              <button className={styles.controlBtn} onClick={handleMinimize} title="Minimize">
+                &#8211;
+              </button>
+              <button className={styles.controlBtn} onClick={handleMaximize} title={maximized ? 'Restore' : 'Maximize'}>
+                {maximized ? '' : ''}
+              </button>
+              <button className={styles.controlBtn} onClick={onClose} title="Close">
+                &#10005;
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      {!minimized && <div className={styles.content}>{children}</div>}
+      {!maximized && !minimized && <div className={styles.resizeHandle} onMouseDown={onMouseDownResize} />}
+    </div>
+  );
+};
+
+export default DraggableWindow;

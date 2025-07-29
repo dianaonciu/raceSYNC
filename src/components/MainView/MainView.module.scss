@@ -1,0 +1,41 @@
+.mainView {
+  position: relative;
+  flex-grow: 1;
+  background: #12121e;
+  overflow: hidden;
+  width: 100%;
+  height: calc(100vh - 10vh);
+}
+
+.minimizedBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #222;
+  padding: 0.25rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 1000;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.7);
+}
+
+.minimizedButton {
+  background: #444;
+  color: #eee;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: #666;
+  }
+
+  &:focus {
+    outline: 2px solid #fff;
+  }
+}

@@ -1,0 +1,77 @@
+.window {
+  background: #1e1e2f;
+  border: 1px solid #444;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  outline: none;
+}
+
+.titleBar {
+  background: #292946;
+  padding: 0 0.5rem;
+  cursor: grab;
+  color: #eee;
+  font-weight: 600;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 30px;
+  justify-content: space-between;
+}
+
+.titleBar:active {
+  cursor: grabbing;
+}
+
+.title {
+  user-select: none;
+}
+
+.controls {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.controlBtn {
+  background: transparent;
+  border: none;
+  color: #ddd;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 6px;
+  line-height: 1;
+  user-select: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #fff;
+  }
+
+  &:focus {
+    outline: 1px solid #fff;
+  }
+}
+
+.content {
+  flex-grow: 1;
+  padding: 0.5rem;
+  overflow: auto;
+  color: #ddd;
+}
+
+.resizeHandle {
+  width: 12px;
+  height: 12px;
+  background: transparent;
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  cursor: se-resize;
+  z-index: 20;
+  border-right: 2px solid #888;
+  border-bottom: 2px solid #888;
+  border-radius: 2px;
+}
