@@ -234,24 +234,26 @@ const DraggableWindow = ({
     }
   };
 
-  const style = maximized
-    ? {
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: 'calc(100vh - 10vh)',
-        position: 'fixed' as const,
-        zIndex,
-      }
-    : {
-        top: position.y,
-        left: position.x,
-        width: size.width,
-        height: size.height,
-        position: 'absolute' as const,
-        zIndex,
-        display: minimized ? 'none' : 'flex',
-      };
+  const style = minimized
+    ? { display: 'none' }
+    : maximized
+      ? {
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: 'calc(100vh - 10vh)',
+          position: 'fixed' as const,
+          zIndex,
+        }
+      : {
+          top: position.y,
+          left: position.x,
+          width: size.width,
+          height: size.height,
+          position: 'absolute' as const,
+          zIndex,
+          display: 'flex',
+        };
 
   return (
     <div
