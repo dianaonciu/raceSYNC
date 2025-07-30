@@ -19,18 +19,18 @@ type TaskbarProps = {
 const Taskbar = ({ dropdowns }: TaskbarProps) => {
   return (
     <div className={styles.taskbar}>
-      {dropdowns.map((dropdown) => (
+      {dropdowns.map(dropdown => (
         <select
           key={dropdown.id}
           id={dropdown.id}
           className={styles.dropdown}
-          onChange={(e) => dropdown.onChange(e.target.value)}
+          onChange={e => dropdown.onChange(e.target.value)}
           defaultValue=""
         >
           <option value="" disabled hidden>
             {dropdown.label}
           </option>
-          {dropdown.options.map((opt) => (
+          {dropdown.options.map(opt => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -39,6 +39,6 @@ const Taskbar = ({ dropdowns }: TaskbarProps) => {
       ))}
     </div>
   );
-}
+};
 
 export default Taskbar;
