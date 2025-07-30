@@ -50,34 +50,30 @@ const DraggableWindow = ({
   const baseComponent = useRef({ position, size });
 
   useEffect(() => {
-   baseComponent.current = { position, size };
-  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
-
+    baseComponent.current = { position, size };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handleResize = () => {
-        const currentWidth = window.innerWidth;
-        const currentHeight = window.innerHeight;
+      const currentWidth = window.innerWidth;
+      const currentHeight = window.innerHeight;
 
-        const widthRatio = currentWidth / baseWindowSize.current.width;
-        const heightRatio = currentHeight / baseWindowSize.current.height;
+      const widthRatio = currentWidth / baseWindowSize.current.width;
+      const heightRatio = currentHeight / baseWindowSize.current.height;
 
-        const newX = baseComponent.current.position.x * widthRatio;
-        const newY = baseComponent.current.position.y * heightRatio;
+      const newX = baseComponent.current.position.x * widthRatio;
+      const newY = baseComponent.current.position.y * heightRatio;
 
-        const newWidth = baseComponent.current.size.width * widthRatio;
-        const newHeight = baseComponent.current.size.height * heightRatio;
+      const newWidth = baseComponent.current.size.width * widthRatio;
+      const newHeight = baseComponent.current.size.height * heightRatio;
 
-        setPosition({ x: newX, y: newY });
-        setSize({ width: newWidth, height: newHeight });
+      setPosition({ x: newX, y: newY });
+      setSize({ width: newWidth, height: newHeight });
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-    
   }, []);
-
-
 
   const onMouseDownDrag = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -88,14 +84,13 @@ const DraggableWindow = ({
   };
 
   const onTouchStartDrag = (e: React.TouchEvent) => {
-  e.preventDefault();
-  onFocus();
-  setIsDragging(true);
-  const touch = e.touches[0];
-  setMouseStart({ x: touch.clientX, y: touch.clientY });
-  setStartPosition(position);
-};
-
+    e.preventDefault();
+    onFocus();
+    setIsDragging(true);
+    const touch = e.touches[0];
+    setMouseStart({ x: touch.clientX, y: touch.clientY });
+    setStartPosition(position);
+  };
 
   const onMouseDownResize = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -107,15 +102,14 @@ const DraggableWindow = ({
   };
 
   const onTouchStartResize = (e: React.TouchEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-  onFocus();
-  setIsResizing(true);
-  const touch = e.touches[0];
-  setMouseStart({ x: touch.clientX, y: touch.clientY });
-  setStartSize(size);
-};
-
+    e.preventDefault();
+    e.stopPropagation();
+    onFocus();
+    setIsResizing(true);
+    const touch = e.touches[0];
+    setMouseStart({ x: touch.clientX, y: touch.clientY });
+    setStartSize(size);
+  };
 
   const onMouseMove = (e: MouseEvent) => {
     if (isDragging && mouseStart) {
@@ -149,7 +143,7 @@ const DraggableWindow = ({
     setMouseStart(null);
   };
 
-   const handleTouchMove = (e: TouchEvent) => {
+  const handleTouchMove = (e: TouchEvent) => {
     if (!mouseStart) return;
     const touch = e.touches[0];
 
@@ -185,29 +179,52 @@ const DraggableWindow = ({
   };
 
   useEffect(() => {
-   if (isDragging || isResizing) {
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd);
-  }
+    if (isDragging || isResizing) {
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd);
+    }
 
-  return () => {
-    window.removeEventListener('mousemove', onMouseMove);
-    window.removeEventListener('mouseup', onMouseUp);
-    window.removeEventListener('touchmove', handleTouchMove);
-    window.removeEventListener('touchend', handleTouchEnd);
-  };
-  }, [isDragging, isResizing, mouseStart, position, size]);   // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isDragging, isResizing, mouseStart, position, size]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMinimize = () => {
     onUpdate({ minimized: true });
   };
 
   const handleMaximize = () => {
-  if (maximized) {
-    // restore position & size from saved prev values or initial as fallback
-    onUpdate({ maximized: false });
+    if (maximized) {
+      // restore position & size from saved prev values or initial as fallback
+      onUpdate({ maximized: false });
+      if (prevPosition && prevSize) {
+        setPosition(prevPosition);
+        setSize(prevSize);
+      } else {
+        setPosition(initialPosition);
+        setSize(initialSize);
+      }
+    } else {
+      // save current pos & size before maximizing
+      setPrevPosition(position);
+      setPrevSize(size);
+
+      onUpdate({ maximized: true, minimized: false });
+      setPosition({ x: 0, y: 0 });
+      setSize({
+        width: window.innerWidth,
+        height: window.innerHeight - 10 * (window.innerHeight / 100), // adjust for header + taskbar
+      });
+    }
+  };
+
+  const handleRestore = () => {
+    onUpdate({ minimized: false, maximized: false });
     if (prevPosition && prevSize) {
       setPosition(prevPosition);
       setSize(prevSize);
@@ -215,30 +232,7 @@ const DraggableWindow = ({
       setPosition(initialPosition);
       setSize(initialSize);
     }
-  } else {
-    // save current pos & size before maximizing
-    setPrevPosition(position);
-    setPrevSize(size);
-
-    onUpdate({ maximized: true, minimized: false });
-    setPosition({ x: 0, y: 0 });
-    setSize({
-      width: window.innerWidth,
-      height: window.innerHeight - 10 * (window.innerHeight / 100), // adjust for header + taskbar
-    });
-  }
-};
-
-const handleRestore = () => {
-  onUpdate({ minimized: false, maximized: false });
-  if (prevPosition && prevSize) {
-    setPosition(prevPosition);
-    setSize(prevSize);
-  } else {
-    setPosition(initialPosition);
-    setSize(initialSize);
-  }
-};
+  };
 
   const style = maximized
     ? {
@@ -269,7 +263,11 @@ const handleRestore = () => {
       tabIndex={0}
       aria-label={title}
     >
-      <div className={styles.titleBar} onMouseDown={onMouseDownDrag}  onTouchStart={onTouchStartDrag}>
+      <div
+        className={styles.titleBar}
+        onMouseDown={onMouseDownDrag}
+        onTouchStart={onTouchStartDrag}
+      >
         <span className={styles.title}>{title}</span>
         <div className={styles.controls}>
           {minimized ? (
@@ -281,7 +279,11 @@ const handleRestore = () => {
               <button className={styles.controlBtn} onClick={handleMinimize} title="Minimize">
                 &#8211;
               </button>
-              <button className={styles.controlBtn} onClick={handleMaximize} title={maximized ? 'Restore' : 'Maximize'}>
+              <button
+                className={styles.controlBtn}
+                onClick={handleMaximize}
+                title={maximized ? 'Restore' : 'Maximize'}
+              >
                 {maximized ? '' : ''}
               </button>
               <button className={styles.controlBtn} onClick={onClose} title="Close">
@@ -292,7 +294,13 @@ const handleRestore = () => {
         </div>
       </div>
       {!minimized && <div className={styles.content}>{children}</div>}
-      {!maximized && !minimized && <div className={styles.resizeHandle} onMouseDown={onMouseDownResize} onTouchStart={onTouchStartResize} />}
+      {!maximized && !minimized && (
+        <div
+          className={styles.resizeHandle}
+          onMouseDown={onMouseDownResize}
+          onTouchStart={onTouchStartResize}
+        />
+      )}
     </div>
   );
 };

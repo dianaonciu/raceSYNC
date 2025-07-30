@@ -2,10 +2,7 @@ import { useState, useEffect } from 'react';
 import styles from './MainView.module.scss';
 import DraggableWindow, { type WindowState } from '../DraggableWindow/DraggableWindow';
 
-type WindowsMap = Record<
-  string,
-  WindowState & { visible: boolean }
->;
+type WindowsMap = Record<string, WindowState & { visible: boolean }>;
 
 const defaultWindows: WindowsMap = {
   window1: {
@@ -44,14 +41,14 @@ const MainView = () => {
   }, [windows]);
 
   const bringToFront = (id: string) => {
-    setZOrder((prev) => {
-      const filtered = prev.filter((w) => w !== id);
+    setZOrder(prev => {
+      const filtered = prev.filter(w => w !== id);
       return [...filtered, id];
     });
   };
 
   const updateWindow = (id: string, newState: Partial<WindowState & { visible?: boolean }>) => {
-    setWindows((prev) => ({
+    setWindows(prev => ({
       ...prev,
       [id]: {
         ...prev[id],
@@ -74,7 +71,7 @@ const MainView = () => {
             maximized={state.maximized}
             zIndex={zOrder.indexOf(id) + 10}
             onFocus={() => bringToFront(id)}
-            onUpdate={(newState) => updateWindow(id, newState)}
+            onUpdate={newState => updateWindow(id, newState)}
             onClose={() => updateWindow(id, { visible: false })}
           >
             <p>Content of {id}</p>
@@ -82,18 +79,18 @@ const MainView = () => {
         ) : null
       )}
       <div className={styles.minimizedBar}>
-      {Object.entries(windows)
-       .filter(([, state]) => state.visible && state.minimized)
-       .map(([id]) => (
-         <button
-          key={id}
-          className={styles.minimizedButton}
-          onClick={() => updateWindow(id, { minimized: false })}
-       >
-           {id.replace(/window/, 'Window ')}
-         </button>
-      ))}
-</div>
+        {Object.entries(windows)
+          .filter(([, state]) => state.visible && state.minimized)
+          .map(([id]) => (
+            <button
+              key={id}
+              className={styles.minimizedButton}
+              onClick={() => updateWindow(id, { minimized: false })}
+            >
+              {id.replace(/window/, 'Window ')}
+            </button>
+          ))}
+      </div>
     </div>
   );
 };
