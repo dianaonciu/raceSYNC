@@ -46,6 +46,38 @@ const DraggableWindow = ({
   const [startSize, setStartSize] = useState(size);
   const [prevPosition, setPrevPosition] = useState<{ x: number; y: number } | null>(null);
   const [prevSize, setPrevSize] = useState<{ width: number; height: number } | null>(null);
+  const baseWindowSize = useRef({ width: window.innerWidth, height: window.innerHeight });
+  const baseComponent = useRef({ position, size });
+
+  useEffect(() => {
+   baseComponent.current = { position, size };
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
+
+  useEffect(() => {
+    const handleResize = () => {
+        const currentWidth = window.innerWidth;
+        const currentHeight = window.innerHeight;
+
+        const widthRatio = currentWidth / baseWindowSize.current.width;
+        const heightRatio = currentHeight / baseWindowSize.current.height;
+
+        const newX = baseComponent.current.position.x * widthRatio;
+        const newY = baseComponent.current.position.y * heightRatio;
+
+        const newWidth = baseComponent.current.size.width * widthRatio;
+        const newHeight = baseComponent.current.size.height * heightRatio;
+
+        setPosition({ x: newX, y: newY });
+        setSize({ width: newWidth, height: newHeight });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+    
+  }, []);
+
+
 
   const onMouseDownDrag = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -55,6 +87,16 @@ const DraggableWindow = ({
     setStartPosition(position);
   };
 
+  const onTouchStartDrag = (e: React.TouchEvent) => {
+  e.preventDefault();
+  onFocus();
+  setIsDragging(true);
+  const touch = e.touches[0];
+  setMouseStart({ x: touch.clientX, y: touch.clientY });
+  setStartPosition(position);
+};
+
+
   const onMouseDownResize = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -63,6 +105,17 @@ const DraggableWindow = ({
     setMouseStart({ x: e.clientX, y: e.clientY });
     setStartSize(size);
   };
+
+  const onTouchStartResize = (e: React.TouchEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+  onFocus();
+  setIsResizing(true);
+  const touch = e.touches[0];
+  setMouseStart({ x: touch.clientX, y: touch.clientY });
+  setStartSize(size);
+};
+
 
   const onMouseMove = (e: MouseEvent) => {
     if (isDragging && mouseStart) {
@@ -96,15 +149,55 @@ const DraggableWindow = ({
     setMouseStart(null);
   };
 
-  useEffect(() => {
-    if (isDragging || isResizing) {
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
+   const handleTouchMove = (e: TouchEvent) => {
+    if (!mouseStart) return;
+    const touch = e.touches[0];
+
+    if (isDragging) {
+      const dx = touch.clientX - mouseStart.x;
+      const dy = touch.clientY - mouseStart.y;
+      const newPos = {
+        x: Math.max(startPosition.x + dx, 0),
+        y: Math.max(startPosition.y + dy, 0),
+      };
+      setPosition(newPos);
+    } else if (isResizing) {
+      const dx = touch.clientX - mouseStart.x;
+      const dy = touch.clientY - mouseStart.y;
+      const newSize = {
+        width: Math.max(startSize.width + dx, 150),
+        height: Math.max(startSize.height + dy, 100),
+      };
+      setSize(newSize);
     }
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
+  };
+
+  const handleTouchEnd = () => {
+    if (isDragging) {
+      onUpdate({ position });
+    }
+    if (isResizing) {
+      onUpdate({ size });
+    }
+    setIsDragging(false);
+    setIsResizing(false);
+    setMouseStart(null);
+  };
+
+  useEffect(() => {
+   if (isDragging || isResizing) {
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+  }
+
+  return () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+    window.removeEventListener('touchmove', handleTouchMove);
+    window.removeEventListener('touchend', handleTouchEnd);
+  };
   }, [isDragging, isResizing, mouseStart, position, size]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMinimize = () => {
@@ -176,7 +269,7 @@ const handleRestore = () => {
       tabIndex={0}
       aria-label={title}
     >
-      <div className={styles.titleBar} onMouseDown={onMouseDownDrag}>
+      <div className={styles.titleBar} onMouseDown={onMouseDownDrag}  onTouchStart={onTouchStartDrag}>
         <span className={styles.title}>{title}</span>
         <div className={styles.controls}>
           {minimized ? (
@@ -199,7 +292,7 @@ const handleRestore = () => {
         </div>
       </div>
       {!minimized && <div className={styles.content}>{children}</div>}
-      {!maximized && !minimized && <div className={styles.resizeHandle} onMouseDown={onMouseDownResize} />}
+      {!maximized && !minimized && <div className={styles.resizeHandle} onMouseDown={onMouseDownResize} onTouchStart={onTouchStartResize} />}
     </div>
   );
 };
