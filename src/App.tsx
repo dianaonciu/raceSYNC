@@ -1,43 +1,18 @@
-// import { useEffect, useState } from 'react';
-import { useEffect, useState } from 'react';
-import './App.css';
+import Header from "./components/Header/Header"
+import './App.module.scss';
+import { dropdownMocks } from './mockups/mockData';
+import Taskbar from "./components/Taskbar/Taskbar";
+import MainView from "./components/MainView/MainView";
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
+const App = () => {
 
-function App() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        window.api.getUsers()
-            .then((data: User[]) => setUsers(data))
-            .finally(() => setLoading(false));
-    }, []);
-
-    return (
-        <div className="app-container">
-            <h1>Importierte Nutzer</h1>
-
-            {loading && <p>Lade Daten…</p>}
-
-            {!loading && users.length === 0 && <p>Keine Nutzer gefunden.</p>}
-
-            {!loading && users.length > 0 && (
-                <ul className="user-list">
-                    {users.map(user => (
-                        <li key={user.id} className="user-item">
-                            <strong>{user.name}</strong> <br />
-                            <span>{user.email}</span>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
-    );
+  return (
+    <div className="appContainer">
+      <Header />
+      <Taskbar dropdowns={dropdownMocks} />
+      <MainView />
+    </div>
+  )
 }
 
 export default App;
